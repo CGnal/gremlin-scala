@@ -9,7 +9,7 @@ import scala.meta.serialiser.mappable
 object MarshallableNewSpec {
   @mappable case class CCSimple(s: String, i: Int)
 
-  // case class CCWithOption(i: Int, s: Option[String])
+  // @mappable case class CCWithOption(i: Int, s: Option[String])
 
   // case class MyValueClass(value: Int) extends AnyVal
   // case class CCWithValueClass(s: String, i: MyValueClass)
@@ -43,25 +43,23 @@ object MarshallableNewSpec {
 class MarshallableNewSpec extends WordSpec with Matchers {
   import MarshallableNewSpec._
 
-  "playground" in {
-    // val testInstance = CCSimple("text", 12)
-    // val keyValues = testInstance.toMap
-    // CCSimple.fromMap(keyValues) shouldBe Some(testInstance )
+  "marshals / unmarshals case classes" which {
 
+    "only have simple members" in new Fixture {
+      val cc = CCSimple("text", 12)
 
-  }
+      // TODO: remove next three lines, replace with the ones below
+      val testInstance = CCSimple("text", 12)
+      val keyValues = testInstance.toMap
+      CCSimple.fromMap(keyValues) shouldBe Some(testInstance )
 
-  // "marshals / unmarshals case classes" which {
+      // val v = graph + cc
 
-    // "only have simple members" in new Fixture {
-    //   val cc = CCSimple("text", 12)
-    //   val v = graph + cc
-
-    //   val vl = graph.V(v.id).head
-    //   vl.label shouldBe cc.getClass.getSimpleName
-    //   vl.valueMap should contain("s" → cc.s)
-    //   vl.valueMap should contain("i" → cc.i)
-    // }
+      // val vl = graph.V(v.id).head
+      // v.label shouldBe cc.getClass.getSimpleName
+      // v.valueMap should contain("s" → cc.s)
+      // v.valueMap should contain("i" → cc.i)
+    }
 
     // "contain options" should {
     //   "map `Some[A]` to `A`" in new Fixture {
@@ -120,7 +118,7 @@ class MarshallableNewSpec extends WordSpec with Matchers {
     //     vl.valueMap.keySet should not contain("i")
     //     vl.toCC[CCWithOptionValueClass] shouldBe cc
     //   }
-    // }
+    }
 
     // "define their custom marshaller" in new Fixture {
     //   val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
