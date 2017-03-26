@@ -65,7 +65,7 @@ case class ScalaGraph(traversalSource: TraversalSource) {
 
   def +[CC <: Product: Marshallable](cc: CC): Vertex = addVertex(cc)
   /* TODO: rename to + */
-  def -[Entity: ToMap](entity: Entity): Vertex = addVertex(entity)
+  def +-[Entity: ToMap](entity: Entity): Vertex = addVertex(entity)
 
   def +(label: String): Vertex = addVertex(label)
 

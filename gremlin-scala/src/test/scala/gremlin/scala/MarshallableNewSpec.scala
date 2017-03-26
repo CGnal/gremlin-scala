@@ -7,6 +7,7 @@ import shapeless.test.illTyped
 import scala.meta.serialiser.mappable
 
 object MarshallableNewSpec {
+  /* TODO: remove (List(_debug -> true)) */
   @mappable case class CCSimple(s: String, i: Int)
   @mappable case class CCWithOption(i: Int, s: Option[String])
 
@@ -46,19 +47,20 @@ class MarshallableNewSpec extends WordSpec with Matchers {
 
     "only have simple members" in new Fixture {
       val cc = CCSimple("text", 12)
-      val v = graph - cc
+      val v = graph +- cc
 
       val vl = graph.V(v.id).head
       v.label shouldBe cc.getClass.getSimpleName
       v.valueMap should contain("s" → cc.s)
       v.valueMap should contain("i" → cc.i)
+      v.toEntity[CCSimple] shouldBe cc
     }
 
     "contain options" should {
       "map `Some[A]` to `A`" in new Fixture {
         val ccWithOptionSome = CCWithOption(Int.MaxValue, Some("optional value"))
-        val v = graph - ccWithOptionSome
-        v.toCC[CCWithOption] shouldBe ccWithOptionSome
+        val v = graph +- ccWithOptionSome
+        v.toEntity[CCWithOption] shouldBe ccWithOptionSome
 
         val vl = graph.V(v.id).head
         vl.value[String]("s") shouldBe ccWithOptionSome.s.get
@@ -66,8 +68,8 @@ class MarshallableNewSpec extends WordSpec with Matchers {
 
       "map `None` to `null`" in new Fixture {
         val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
-        val v = graph - ccWithOptionNone
-        v.toCC[CCWithOption] shouldBe ccWithOptionNone
+        val v = graph +- ccWithOptionNone
+        v.toEntity[CCWithOption] shouldBe ccWithOptionNone
 
         val vl = graph.V(v.id).head
         vl.keys should not contain "s"  //None should be mapped to `null`

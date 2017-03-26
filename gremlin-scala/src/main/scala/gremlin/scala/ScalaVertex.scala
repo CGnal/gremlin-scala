@@ -5,12 +5,19 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality
 import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty, T}
 import shapeless._
 import scala.collection.JavaConversions._
+import scala.meta.serialiser.FromMap
 
 case class ScalaVertex(vertex: Vertex) extends ScalaElement[Vertex] {
   override def element = vertex
 
   def toCC[CC <: Product: Marshallable] =
     implicitly[Marshallable[CC]].toCC(vertex.id, vertex.valueMap)
+  def toEntity[Entity: FromMap](): Entity = {
+    val entity = implicitly[FromMap[Entity]].apply(vertex.valueMap).get
+    //.toCC(vertex.id, vertex.valueMap)
+    /* TODO: support setting of id */
+    entity
+  }
 
   override def setProperty[A](key: Key[A], value: A): Vertex = {
     element.property(key.name, value)
