@@ -8,8 +8,7 @@ import scala.meta.serialiser.mappable
 
 object MarshallableNewSpec {
   @mappable case class CCSimple(s: String, i: Int)
-
-  // @mappable case class CCWithOption(i: Int, s: Option[String])
+  @mappable case class CCWithOption(i: Int, s: Option[String])
 
   // case class MyValueClass(value: Int) extends AnyVal
   // case class CCWithValueClass(s: String, i: MyValueClass)
@@ -47,43 +46,37 @@ class MarshallableNewSpec extends WordSpec with Matchers {
 
     "only have simple members" in new Fixture {
       val cc = CCSimple("text", 12)
+      val v = graph - cc
 
-      // TODO: remove next three lines, replace with the ones below
-      val testInstance = CCSimple("text", 12)
-      val keyValues = testInstance.toMap
-      CCSimple.fromMap(keyValues) shouldBe Some(testInstance )
-
-      // val v = graph + cc
-
-      // val vl = graph.V(v.id).head
+      val vl = graph.V(v.id).head
       // v.label shouldBe cc.getClass.getSimpleName
-      // v.valueMap should contain("s" → cc.s)
-      // v.valueMap should contain("i" → cc.i)
+      v.valueMap should contain("s" → cc.s)
+      v.valueMap should contain("i" → cc.i)
     }
 
-    // "contain options" should {
-    //   "map `Some[A]` to `A`" in new Fixture {
-    //     val ccWithOptionSome = CCWithOption(Int.MaxValue, Some("optional value"))
-    //     val v = graph + ccWithOptionSome
-    //     v.toCC[CCWithOption] shouldBe ccWithOptionSome
+    "contain options" should {
+      "map `Some[A]` to `A`" in new Fixture {
+        val ccWithOptionSome = CCWithOption(Int.MaxValue, Some("optional value"))
+        val v = graph - ccWithOptionSome
+        v.toCC[CCWithOption] shouldBe ccWithOptionSome
 
-    //     val vl = graph.V(v.id).head
-    //     vl.value[String]("s") shouldBe ccWithOptionSome.s.get
-    //   }
+        val vl = graph.V(v.id).head
+        vl.value[String]("s") shouldBe ccWithOptionSome.s.get
+      }
 
-    //   "map `None` to `null`" in new Fixture {
-    //     val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
-    //     val v = graph + ccWithOptionNone
-    //     v.toCC[CCWithOption] shouldBe ccWithOptionNone
+      "map `None` to `null`" in new Fixture {
+        val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
+        val v = graph - ccWithOptionNone
+        v.toCC[CCWithOption] shouldBe ccWithOptionNone
 
-    //     val vl = graph.V(v.id).head
-    //     vl.keys should not contain "s"  //None should be mapped to `null`
-    //   }
+        val vl = graph.V(v.id).head
+        vl.keys should not contain "s"  //None should be mapped to `null`
+      }
 
       // Background: if we marshal Option types, the graph db needs to understand scala.Option,
       // which wouldn't make any sense. So we rather translate it to `null` if it's `None`.
       // https://github.com/mpollmeier/gremlin-scala/issues/98
-    // }
+    }
 
     // "contain value classes" should {
     //   "unwrap a plain value class" in new Fixture {
