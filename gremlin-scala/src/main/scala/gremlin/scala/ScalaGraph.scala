@@ -56,7 +56,10 @@ case class ScalaGraph(traversalSource: TraversalSource) {
     val valueMap: Map[String, Any] = implicitly[ToMap[Entity]].apply(entity)
     /* TODO: allow to provide id */
     // val idParam = fromCC.id.toSeq flatMap (List(T.id, _))
+
+    /* TODO: allow custom label */
     val labelParam = Seq(T.label, entity.getClass.getSimpleName)
+
     val properties = valueMap.filter(_._2 != null) // null values don't matter when adding a vertex
       .toSeq.flatMap(pair ⇒ Seq(pair._1, pair._2.asInstanceOf[AnyRef]))
     // println(properties)
