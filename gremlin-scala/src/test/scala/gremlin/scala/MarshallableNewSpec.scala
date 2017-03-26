@@ -49,7 +49,7 @@ class MarshallableNewSpec extends WordSpec with Matchers {
       val v = graph - cc
 
       val vl = graph.V(v.id).head
-      // v.label shouldBe cc.getClass.getSimpleName
+      v.label shouldBe cc.getClass.getSimpleName
       v.valueMap should contain("s" → cc.s)
       v.valueMap should contain("i" → cc.i)
     }

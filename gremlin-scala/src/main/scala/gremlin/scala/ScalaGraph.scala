@@ -54,14 +54,13 @@ case class ScalaGraph(traversalSource: TraversalSource) {
   /* Save an entity's values into a new vertex */
   def addVertex[Entity: ToMap](entity: Entity): Vertex = {
     val valueMap: Map[String, Any] = implicitly[ToMap[Entity]].apply(entity)
-    /* TODO: allow to provide id and label */
+    /* TODO: allow to provide id */
     // val idParam = fromCC.id.toSeq flatMap (List(T.id, _))
-    // val labelParam = Seq(T.label, fromCC.label)
+    val labelParam = Seq(T.label, entity.getClass.getSimpleName)
     val properties = valueMap.filter(_._2 != null) // null values don't matter when adding a vertex
       .toSeq.flatMap(pair ⇒ Seq(pair._1, pair._2.asInstanceOf[AnyRef]))
-    // graph.addVertex(idParam ++ labelParam ++ properties: _*)
     // println(properties)
-    graph.addVertex(properties: _*)
+    graph.addVertex(labelParam ++ properties: _*)
   }
 
   def +[CC <: Product: Marshallable](cc: CC): Vertex = addVertex(cc)
