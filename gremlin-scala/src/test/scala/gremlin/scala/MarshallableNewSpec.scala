@@ -6,20 +6,20 @@ import org.scalatest.Matchers
 import shapeless.test.illTyped
 import scala.meta.serialiser.mappable
 
+/* note: to print out the generated code to the console, just define @mappable(List("_debug" -> "true")) */
 object MarshallableNewSpec {
-  /* TODO: remove (List(_debug -> true)) */
   @mappable case class CCSimple(s: String, i: Int)
   @mappable case class CCWithOption(i: Int, s: Option[String])
 
-  // case class MyValueClass(value: Int) extends AnyVal
-  // case class CCWithValueClass(s: String, i: MyValueClass)
-  // case class CCWithOptionValueClass(s: String, i: Option[MyValueClass])
+  @mappable(List("_label" -> "CustomLabel"))
+  case class CCWithLabel(s: String)
 
   // case class CCWithOptionId(@id id: Option[String], s: String)
   // case class CCWithOptionIdAndOptionValueClass(@id id: Option[Int], s: String, i: MyValueClass)
 
-  // @label("label_a")
-  // case class CCWithLabel(s: String)
+  // case class MyValueClass(value: Int) extends AnyVal
+  // case class CCWithValueClass(s: String, i: MyValueClass)
+  // case class CCWithOptionValueClass(s: String, i: Option[MyValueClass])
 
   // object CCWithCompanion { def funcInCompanion: String = "function in companion object" }
   // @mappable CCWithCompanion(s: String) { def funcInCC: String = "function in case class" }
@@ -35,7 +35,6 @@ object MarshallableNewSpec {
   // )
 
   // case class NestedClass(s: String)
-
   // class NoneCaseClass(s: String)
 }
 
@@ -57,6 +56,10 @@ class MarshallableNewSpec extends WordSpec with Matchers {
     }
 
     "contain options" should {
+      // Background: if we marshal Option types, the graph db needs to understand scala.Option,
+      // which wouldn't make any sense. So we rather translate it to `null` if it's `None`.
+      // https://github.com/mpollmeier/gremlin-scala/issues/98
+
       "map `Some[A]` to `A`" in new Fixture {
         val ccWithOptionSome = CCWithOption(Int.MaxValue, Some("optional value"))
         val v = graph +- ccWithOptionSome
@@ -74,62 +77,16 @@ class MarshallableNewSpec extends WordSpec with Matchers {
         val vl = graph.V(v.id).head
         vl.keys should not contain "s"  //None should be mapped to `null`
       }
-
-      // Background: if we marshal Option types, the graph db needs to understand scala.Option,
-      // which wouldn't make any sense. So we rather translate it to `null` if it's `None`.
-      // https://github.com/mpollmeier/gremlin-scala/issues/98
     }
 
-    // "contain value classes" should {
-    //   "unwrap a plain value class" in new Fixture {
-    //     val cc = CCWithValueClass("some text", MyValueClass(42))
-    //     val v = graph + cc
+    "define a custom label" in new Fixture {
+      val cc = CCWithLabel("some string")
+      val v = graph +- cc
 
-    //     val vl = graph.V(v.id).head
-    //     vl.label shouldBe cc.getClass.getSimpleName
-    //     vl.valueMap should contain("s" → cc.s)
-    //     vl.valueMap should contain("i" → cc.i.value)
-    //     vl.toCC[CCWithValueClass] shouldBe cc
-    //   }
-
-    //   "unwrap an optional value class" in new Fixture {
-    //     val cc = CCWithOptionValueClass("some text", Some(MyValueClass(42)))
-    //     val v = graph + cc
-
-    //     val vl = graph.V(v.id).head
-    //     vl.label shouldBe cc.getClass.getSimpleName
-    //     vl.valueMap should contain("s" → cc.s)
-    //     vl.valueMap should contain("i" → cc.i.get.value)
-    //     vl.toCC[CCWithOptionValueClass] shouldBe cc
-    //   }
-
-    //   "handle None value class" in new Fixture {
-    //     val cc = CCWithOptionValueClass("some text", None)
-    //     val v = graph + cc
-
-    //     val vl = graph.V(v.id).head
-    //     vl.label shouldBe cc.getClass.getSimpleName
-    //     vl.valueMap should contain("s" → cc.s)
-    //     vl.valueMap.keySet should not contain("i")
-    //     vl.toCC[CCWithOptionValueClass] shouldBe cc
-    //   }
+      val vl = graph.V(v.id).head
+      v.toEntity[CCWithLabel] shouldBe cc
+      v.label shouldBe "CustomLabel"
     }
-
-    // "define their custom marshaller" in new Fixture {
-    //   val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
-
-    //   val marshaller = new Marshallable[CCWithOption] {
-    //     def fromCC(cc: CCWithOption) =
-    //       FromCC(None, "CCWithOption", Map("i" -> cc.i, "s" → cc.s.getOrElse("undefined")))
-
-    //     def toCC(id: AnyRef, valueMap: Map[String, Any]): CCWithOption =
-    //       CCWithOption(i = valueMap("i").asInstanceOf[Int],
-    //                    s = valueMap.get("s").asInstanceOf[Option[String]])
-    //   }
-
-    //   val v = graph.+(ccWithOptionNone)(marshaller)
-    //   v.toCC[CCWithOption](marshaller) shouldBe CCWithOption(ccWithOptionNone.i, Some("undefined"))
-    // }
 
     // "use @label and @id annotations" in new Fixture {
     //   val ccWithLabelAndId = CCWithLabelAndId(
@@ -169,7 +126,59 @@ class MarshallableNewSpec extends WordSpec with Matchers {
     //   vl.valueMap should contain("s" → cc.s)
     // }
 
-  // }
+    // "define their custom marshaller" in new Fixture {
+    //   val ccWithOptionNone = CCWithOption(Int.MaxValue, None)
+
+    //   val marshaller = new Marshallable[CCWithOption] {
+    //     def fromCC(cc: CCWithOption) =
+    //       FromCC(None, "CCWithOption", Map("i" -> cc.i, "s" → cc.s.getOrElse("undefined")))
+
+    //     def toCC(id: AnyRef, valueMap: Map[String, Any]): CCWithOption =
+    //       CCWithOption(i = valueMap("i").asInstanceOf[Int],
+    //                    s = valueMap.get("s").asInstanceOf[Option[String]])
+    //   }
+
+    //   val v = graph.+(ccWithOptionNone)(marshaller)
+    //   v.toCC[CCWithOption](marshaller) shouldBe CCWithOption(ccWithOptionNone.i, Some("undefined"))
+    // }
+
+
+    // "contain value classes" should {
+    //   "unwrap a plain value class" in new Fixture {
+    //     val cc = CCWithValueClass("some text", MyValueClass(42))
+    //     val v = graph + cc
+
+    //     val vl = graph.V(v.id).head
+    //     vl.label shouldBe cc.getClass.getSimpleName
+    //     vl.valueMap should contain("s" → cc.s)
+    //     vl.valueMap should contain("i" → cc.i.value)
+    //     vl.toCC[CCWithValueClass] shouldBe cc
+    //   }
+
+    //   "unwrap an optional value class" in new Fixture {
+    //     val cc = CCWithOptionValueClass("some text", Some(MyValueClass(42)))
+    //     val v = graph + cc
+
+    //     val vl = graph.V(v.id).head
+    //     vl.label shouldBe cc.getClass.getSimpleName
+    //     vl.valueMap should contain("s" → cc.s)
+    //     vl.valueMap should contain("i" → cc.i.get.value)
+    //     vl.toCC[CCWithOptionValueClass] shouldBe cc
+    //   }
+
+    //   "handle None value class" in new Fixture {
+    //     val cc = CCWithOptionValueClass("some text", None)
+    //     val v = graph + cc
+
+    //     val vl = graph.V(v.id).head
+    //     vl.label shouldBe cc.getClass.getSimpleName
+    //     vl.valueMap should contain("s" → cc.s)
+    //     vl.valueMap.keySet should not contain("i")
+    //     vl.toCC[CCWithOptionValueClass] shouldBe cc
+    //   }
+    // }
+
+  }
 
   // "find vertices by label" in new Fixture {
   //   val ccSimple = CCSimple("a string", 42)
