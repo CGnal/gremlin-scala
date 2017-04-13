@@ -4,7 +4,7 @@ organization := org
 
 val defaultScalaV = "2.12.1"
 scalaVersion := defaultScalaV
-crossScalaVersions := Seq("2.11.8", defaultScalaV) //prefix sbt command with `+` to run it with these scala versions
+crossScalaVersions := Seq("2.11.10", defaultScalaV) //prefix sbt command with `+` to run it with these scala versions
 releaseCrossBuild := true
 
 val gremlinVersion = "3.2.4"
@@ -18,7 +18,7 @@ val commonSettings = Seq(
       "org.apache.tinkerpop" % "gremlin-core" % gremlinVersion,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "com.chuusai" %% "shapeless" % "2.3.2",
-      "com.michaelpollmeier" %% "scalameta-serialiser" % "0.0.8-SNAPSHOT",
+      "com.michaelpollmeier" %% "scalameta-serialiser" % "0.0.8",
       "org.scala-lang.modules" %% "scala-xml" % "1.0.6", //just specified to eliminate sbt warnings
       "org.slf4j" % "slf4j-nop" % "1.7.25" % Test,
       "org.apache.tinkerpop" % "tinkergraph-gremlin" % gremlinVersion % Test,
