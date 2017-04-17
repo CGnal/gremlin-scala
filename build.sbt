@@ -25,7 +25,7 @@ val commonSettings = Seq(
       "org.apache.tinkerpop" % "gremlin-test" % gremlinVersion % Test,
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
   ),
-  addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-M7" cross CrossVersion.full),
+  addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-M8" cross CrossVersion.full),
   resolvers += "Apache public" at "https://repository.apache.org/content/groups/public/",
   scalacOptions ++= Seq(
     "-Xlint"
