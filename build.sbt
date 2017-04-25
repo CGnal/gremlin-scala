@@ -2,9 +2,9 @@ name := "root"
 val org = "com.michaelpollmeier"
 organization := org
 
-val defaultScalaV = "2.12.1"
+val defaultScalaV = "2.12.2"
 scalaVersion := defaultScalaV
-crossScalaVersions := Seq("2.11.10", defaultScalaV) //prefix sbt command with `+` to run it with these scala versions
+crossScalaVersions := Seq("2.11.11", defaultScalaV) //prefix sbt command with `+` to run it with these scala versions
 releaseCrossBuild := true
 
 val gremlinVersion = "3.2.4"
