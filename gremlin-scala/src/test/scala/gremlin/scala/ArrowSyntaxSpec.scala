@@ -1,183 +1,82 @@
 package gremlin.scala
 
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{FunSpec, Matchers}
 
-class ArrowSyntaxSpec extends WordSpec with Matchers {
+class ArrowSyntaxSpec extends FunSpec with Matchers {
 
-  "A --> B creates an edge" which {
-
-    "has a label" in new Fixture {
-      paris --- Eurostar --> london
-
-      paris.out(Eurostar).head shouldBe london
-    }
-
-    "has a label and one property" in new Fixture {
-      paris --- (Eurostar, Name → "alpha") --> london
-
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-    }
-
-    "has a label and multiple properties" in new Fixture {
-      paris --- (Eurostar, Name → "alpha", Length → 100) --> london
-
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.outE(Eurostar).value(Length).head shouldBe 100
-    }
-
-    "has a label and multiple properties as Map " in new Fixture {
-      paris --- (Eurostar,properties) --> london
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.outE(Eurostar).value(Length).head shouldBe 100
-    }
-  }
-
-  "A <-- B creates an edge" which {
-    "has a label" in new Fixture {
-      paris <-- Eurostar --- london
-      london.out(Eurostar).head shouldBe paris
-    }
-
-    "has a label and one property" in new Fixture {
-      paris <-- (Eurostar, Name → "alpha") --- london
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-    }
-
-    "has a label and multiple properties" in new Fixture {
-      paris <-- (Eurostar, Name → "alpha", Length -> 100) --- london
-
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.inE(Eurostar).value(Length).head shouldBe 100
-    }
-
- /*   "has a label and multiple properties as Map" in new Fixture {
-      paris <-- (Eurostar, properties) --- london
-
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.inE(Eurostar).value(Length).head shouldBe 100
-    }*/
-  }
-
-  "A <--> B create edges" which {
-    "have labels" in new Fixture {
-      paris <-- Eurostar --> london
-
-      paris.out(Eurostar).head shouldBe london
-      london.out(Eurostar).head shouldBe paris
-    }
-
-    "have labels and one property" in new Fixture {
-      paris <-- (Eurostar, Name → "alpha") --> london
-
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-    }
-
-    "have labels and multiple properties" in new Fixture {
-      paris <-- (Eurostar, Name → "alpha", Length → 100) --> london
-
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.outE(Eurostar).value(Length).head shouldBe 100
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.inE(Eurostar).value(Length).head shouldBe 100
-    }
-
-/*    "have labels and multiple properties as Map" in new Fixture {
-      paris <-- (Eurostar, properties) --> london
-
-      paris.out(Eurostar).head shouldBe london
-      paris.outE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.outE(Eurostar).value(Length).head shouldBe 100
-      paris.in(Eurostar).head shouldBe london
-      paris.inE(Eurostar).value(Name).head shouldBe "alpha"
-      paris.inE(Eurostar).value(Length).head shouldBe 100
-    }*/
-  }
-
-  // TODO: case class support
-  // "adding edge with case class" in {
-  //   val graph = TinkerGraph.open.asScala
-
-  //   val paris = graph.addVertex("Paris")
-  //   val london = graph.addVertex("London")
-
-  //   val e = paris --- CCWithLabelAndId(
-  //     "some string",
-  //     Int.MaxValue,
-  //     Long.MaxValue,
-  //     Some("option type"),
-  //     Seq("test1", "test2"),
-  //     Map("key1" → "value1", "key2" → "value2"),
-  //     NestedClass("nested")
-  //   ) --> london
-
-  //   e.inVertex shouldBe london
-  //   e.outVertex shouldBe paris
-  // }
-
-  // "adding bidirectional edge with case class" in {
-  //   val graph = TinkerGraph.open.asScala
-
-  //   val paris = graph.addVertex("Paris")
-  //   val london = graph.addVertex("London")
-
-  //   val (e0, e1) = paris <-- CCWithLabel(
-  //     "some string",
-  //     Long.MaxValue,
-  //     Some("option type"),
-  //     Seq("test1", "test2"),
-  //     Map("key1" → "value1", "key2" → "value2"),
-  //     NestedClass("nested")
-  //   ) --> london
-
-  //   e0.inVertex shouldBe london
-  //   e0.outVertex shouldBe paris
-
-  //   e1.inVertex shouldBe paris
-  //   e1.outVertex shouldBe london
-  // }
-
-  // "adding left edge with case class" in {
-  //   val graph = TinkerGraph.open.asScala
-
-  //   val paris = graph.addVertex("Paris")
-  //   val london = graph.addVertex("London")
-
-  //   val e = paris <-- CCWithLabelAndId(
-  //     "some string",
-  //     Int.MaxValue,
-  //     Long.MaxValue,
-  //     Some("option type"),
-  //     Seq("test1", "test2"),
-  //     Map("key1" → "value1", "key2" → "value2"),
-  //     NestedClass("nested")
-  //   ) --- london
-
-  //   e.inVertex shouldBe paris
-  //   e.outVertex shouldBe london
-  // }
-
-  trait Fixture {
+  it("add edge with syntax sugar") {
     val graph = TinkerGraph.open.asScala
-    val paris = graph + "Paris"
-    val london = graph + "London"
 
-    val Eurostar = "eurostar" //edge label
+    val paris = graph.addVertex("Paris")
+    val london = graph.addVertex("London")
 
-    val Name = Key[String]("name")
-    val Length = Key[Int]("length")
+    val e = paris --- "eurostar" --> london
 
-    val properties: Map[String, Any] =List(("name" , "alpha"),( "length" , 100)).toMap
+    e.asJava.inVertex shouldBe london.asJava
+    e.asJava.outVertex shouldBe paris.asJava
+  }
+
+  it("add edge with case class") {
+    val graph = TinkerGraph.open.asScala
+
+    val paris = graph.addVertex("Paris")
+    val london = graph.addVertex("London")
+
+    val e = paris --- ClassExampleWithLabel(
+      "some string",
+      Int.MaxValue,
+      Long.MaxValue,
+      Some("option type"),
+      Seq("test1", "test2"),
+      Map("key1" -> "value1", "key2" -> "value2"),
+      NestedClass("nested")
+    ) --> london
+
+    e.asJava.inVertex shouldBe london.asJava
+    e.asJava.outVertex shouldBe paris.asJava
+  }
+
+  it("add bidirectional edge with syntax sugar") {
+    val graph = TinkerGraph.open.asScala
+
+    val paris = graph.addVertex("Paris")
+    val london = graph.addVertex("London")
+
+    val (edgeParisToLondon, edgeLondonToParis) = paris <-- "eurostar" --> london
+
+    edgeParisToLondon.asJava.inVertex shouldBe london.asJava
+    edgeParisToLondon.asJava.outVertex shouldBe paris.asJava
+
+    edgeLondonToParis.asJava.inVertex shouldBe paris.asJava
+    edgeLondonToParis.asJava.outVertex shouldBe london.asJava
+  }
+
+  it("add edge with properties using syntax sugar") {
+    val graph = TinkerGraph.open.asScala
+
+    val paris = graph.addVertex("Paris")
+    val london = graph.addVertex("London")
+
+    val e = paris --- ("eurostar", Map("type" -> "WDiEdge", "weight" -> 2)) --> london
+
+    e.asJava.inVertex shouldBe london.asJava
+    e.asJava.outVertex shouldBe paris.asJava
+    e.value("type") shouldBe Some("WDiEdge")
+    e.value("weight") shouldBe Some(2)
+  }
+
+  it("add left edge with properties using syntax sugar") {
+    val graph = TinkerGraph.open.asScala
+
+    val paris = graph.addVertex("Paris")
+    val london = graph.addVertex("London")
+
+    val e = paris <-- ("eurostar", Map("type" -> "WDiEdge", "weight" -> 2)) --- london
+
+    e.asJava.inVertex shouldBe paris.asJava
+    e.asJava.outVertex shouldBe london.asJava
+    e.value("type") shouldBe Some("WDiEdge")
+    e.value("weight") shouldBe Some(2)
   }
 }

@@ -1,45 +1,36 @@
 package gremlin.scala
 
-import scala.collection.JavaConverters._
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__
+import shapeless._
 
 case class ScalaEdge(edge: Edge) extends ScalaElement[Edge] {
   override def element = edge
 
-  override def setProperty[A](key: Key[A], value: A): Edge = {
-    element.property(key.name, value)
-    edge
+  def setProperty(key: String, value: Any): ScalaEdge = {
+    element.property(key, value)
+    this
   }
 
-  def setProperties(properties: Map[Key[Any], Any]): Edge = {
+  def setProperties(properties: Map[String, Any]): ScalaEdge = {
     properties foreach { case (k, v) ⇒ setProperty(k, v) }
-    edge
+    this
   }
 
-  def setProperties[CC <: Product: Marshallable](cc: CC): Edge = {
-    val fromCC = implicitly[Marshallable[CC]].fromCC(cc)
-    fromCC.valueMap foreach { case (k, v) ⇒ element.property(k, v) }
-    edge
+  def setProperties[T <: Product : Marshallable](cc: T): ScalaEdge = {
+    val (_, properties) = implicitly[Marshallable[T]].fromCC(cc)
+    setProperties(properties)
+    this
   }
 
-  override def removeProperty(key: Key[_]): Edge = {
+  def removeProperty(key: String): ScalaEdge = {
     val p = property(key)
     if (p.isPresent) p.remove()
-    edge
+    this
   }
 
-  override def removeProperties(keys: Key[_]*): Edge = {
-    keys foreach removeProperty
-    edge
-  }
+  def toCC[T <: Product: Marshallable] = implicitly[Marshallable[T]].toCC(edge.label, edge.valueMap())
 
-  def toCC[CC <: Product: Marshallable] =
-    implicitly[Marshallable[CC]].toCC(edge.id, edge.valueMap)
-
-  override def properties[A: DefaultsToAny]: Stream[Property[A]] =
-    edge.properties[A](keys.map(_.name).toSeq: _*).asScala.toStream
-
-  override def properties[A: DefaultsToAny](wantedKeys: String*): Stream[Property[A]] =
-    edge.properties[A](wantedKeys: _*).asScala.toStream
+  def start() = GremlinScala[Edge, HNil](__.__(edge))
 
   //TODO: wait until this is consistent in T3 between Vertex and Edge
   //currently Vertex.outE returns a GraphTraversal, Edge.inV doesnt quite exist

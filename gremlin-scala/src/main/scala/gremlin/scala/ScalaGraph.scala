@@ -1,99 +1,56 @@
 package gremlin.scala
 
-import org.apache.commons.configuration.Configuration
-import org.apache.tinkerpop.gremlin.process.computer.GraphComputer
-import org.apache.tinkerpop.gremlin.structure.Graph.Variables
-import org.apache.tinkerpop.gremlin.structure.{Transaction, T}
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
 import shapeless._
 
-object ScalaGraph {
-  def apply(graph: Graph): ScalaGraph =
-    ScalaGraph(TraversalSource(graph))
-}
+case class ScalaGraph[G <: Graph](graph: G) {
 
-case class ScalaGraph(traversalSource: TraversalSource) {
-  lazy val graph = traversalSource.graph
+  def addVertex() = ScalaVertex(graph.addVertex())
 
-  def configure(conf: TraversalSource => TraversalSource) = 
-    ScalaGraph(conf(TraversalSource(graph)))
+  def addVertex(label: String) = ScalaVertex(graph.addVertex(label))
 
-  def addVertex(label: String): Vertex = graph.addVertex(label)
-
-  def addVertex(): Vertex = graph.addVertex()
-
-  def addVertex(label: String, properties: (String, Any)*): Vertex = {
-    val labelParam = Seq(T.label, label)
-    val params = properties.flatMap(pair ⇒ Seq(pair._1, pair._2.asInstanceOf[AnyRef]))
-    graph.addVertex(labelParam ++ params: _*)
+  def addVertex(properties: Map[String, Any]): ScalaVertex = {
+    val v = addVertex()
+    v.setProperties(properties)
+    v
   }
 
-  def addVertex(properties: (String, Any)*): Vertex = {
-    val params = properties.flatMap(pair ⇒ Seq(pair._1, pair._2.asInstanceOf[AnyRef]))
-    graph.addVertex(params: _*)
+  def addVertex(label: String, properties: Map[String, Any]): ScalaVertex = {
+    val v = addVertex(label)
+    v.setProperties(properties)
+    v
   }
-
-  def addVertex(label: String, properties: Map[String, Any]): Vertex =
-    addVertex(label, properties.toSeq: _*)
-
-  def addVertex(properties: Map[String, Any]): Vertex =
-    addVertex(properties.toSeq: _*)
 
   /**
-    * Save an object's values into a new vertex
-    * @param cc The case class to persist as a vertex
-    */
-  def addVertex[CC <: Product: Marshallable](cc: CC): Vertex = {
-    val fromCC = implicitly[Marshallable[CC]].fromCC(cc)
-    val idParam = fromCC.id.toSeq flatMap (List(T.id, _))
-    val labelParam = Seq(T.label, fromCC.label)
-    val params = fromCC.valueMap.toSeq.flatMap(pair ⇒ Seq(pair._1, pair._2.asInstanceOf[AnyRef]))
-    graph.addVertex(idParam ++ labelParam ++ params: _*)
+   * Save an object's values into a new vertex
+   *
+   * @param cc The case class to persist as a vertex
+   * @tparam T
+   * @return
+   */
+  def addVertex[T <: Product : Marshallable](cc: T): ScalaVertex = {
+    val (label, properties) = implicitly[Marshallable[T]].fromCC(cc)
+    addVertex(label, properties)
   }
 
-  def +[CC <: Product: Marshallable](cc: CC): Vertex = addVertex(cc)
+  // get vertex by id
+  def v(id: AnyRef): Option[ScalaVertex] =
+    graph.traversal.V(id).headOption map ScalaVertex.apply
 
-  def +(label: String): Vertex = addVertex(label)
+  // get edge by id
+  def e(id: AnyRef): Option[ScalaEdge] =
+    graph.traversal.E(id).headOption map ScalaEdge.apply
 
-  def +(label: String, properties: KeyValue[_]*): Vertex =
-    addVertex(label, properties.map(v ⇒ (v.key.name, v.value)).toMap)
-
-  def addV(): GremlinScala[Vertex, HNil] =
-    GremlinScala[Vertex, HNil](traversalSource.underlying.addV())
-
-  def addV(label: String): GremlinScala[Vertex, HNil] =
-    GremlinScala[Vertex, HNil](traversalSource.underlying.addV(label))
-
-  def inject[S](starts: S*): GremlinScala[S, HNil] =
-    GremlinScala[S, HNil](traversalSource.underlying.inject(starts:_ *))
-
-  // start traversal with all vertices
-  def V(): GremlinScala[Vertex, HNil] =
-    GremlinScala[Vertex, HNil](traversalSource.underlying.V())
+  // start traversal with all vertices 
+  def V = GremlinScala[Vertex, HNil](graph.traversal.V().asInstanceOf[GraphTraversal[_, Vertex]])
 
   // start traversal with all edges
-  def E(): GremlinScala[Edge, HNil] = GremlinScala[Edge, HNil](traversalSource.underlying.E())
+  def E = GremlinScala[Edge, HNil](graph.traversal.E().asInstanceOf[GraphTraversal[_, Edge]])
 
   // start traversal with some vertices identified by given ids 
-  def V(vertexIds: Any*): GremlinScala[Vertex, HNil] =
-    GremlinScala[Vertex, HNil](traversalSource.underlying.V(vertexIds.asInstanceOf[Seq[AnyRef]]: _*))
+  def V(vertexIds: AnyRef*) = GremlinScala[Vertex, HNil](graph.traversal.V(vertexIds: _*).asInstanceOf[GraphTraversal[_, Vertex]])
 
-  // start traversal with some edges identified by given ids
-  def E(edgeIds: Any*): GremlinScala[Edge, HNil] =
-    GremlinScala[Edge, HNil](traversalSource.underlying.E(edgeIds.asInstanceOf[Seq[AnyRef]]: _*))
+  // start traversal with some edges identified by given ids 
+  def E(edgeIds: AnyRef*) = GremlinScala[Edge, HNil](graph.traversal.E(edgeIds: _*).asInstanceOf[GraphTraversal[_, Edge]])
 
-  def tx(): Transaction = graph.tx()
-
-  def variables(): Variables = graph.variables()
-
-  def configuration(): Configuration = graph.configuration()
-
-  def compute[C <: GraphComputer](graphComputerClass: Class[C]): C =
-    graph.compute(graphComputerClass)
-
-  def compute(): GraphComputer = graph.compute()
-
-  def close(): Unit = graph.close()
-
-  /* TODO: reimplement with createThreadedTx, if the underlying graph supports it */
-  // def transactional[R](work: Graph ⇒ R) = graph.tx.submit(work)
 }

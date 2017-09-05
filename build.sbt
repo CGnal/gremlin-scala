@@ -1,47 +1,43 @@
-name := "root"
-val org = "com.michaelpollmeier"
-organization := org
-
-val defaultScalaV = "2.12.3"
-scalaVersion := defaultScalaV
-crossScalaVersions := Seq("2.11.11")
-
-import ReleaseTransformations._
-val gremlinVersion = "3.3.0"
 val commonSettings = Seq(
-  organization := org,
-  scalaVersion := defaultScalaV,
-  libraryDependencies ++= Seq(
-      "org.apache.tinkerpop" % "gremlin-core" % gremlinVersion,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "com.chuusai" %% "shapeless" % "2.3.2",
-      "org.scala-lang.modules" %% "scala-xml" % "1.0.6", //just specified to eliminate sbt warnings
-      "org.slf4j" % "slf4j-nop" % "1.7.25" % Test,
-      "org.apache.tinkerpop" % "tinkergraph-gremlin" % gremlinVersion % Test,
-      "org.apache.tinkerpop" % "gremlin-test" % gremlinVersion % Test,
-      "org.scalatest" %% "scalatest" % "3.0.3" % Test,
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
-  ),
-  resolvers += "Apache public" at "https://repository.apache.org/content/groups/public/",
-  scalacOptions ++= Seq(
-    // "-Xlint"
-    // "-Xfatal-warnings",
-    // , "-Xlog-implicits"
-    //"-Ydebug",
-    "-language:implicitConversions",
-    "-feature",
-    "-deprecation" //hard to handle when supporting multiple scala versions...
-  ),
-  publishTo := { // format: off
-    if (isSnapshot.value) Some("snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
-    else Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-  },
-  homepage := Some(url("https://github.com/mpollmeier/gremlin-scala")),
+  organization := "com.michaelpollmeier",
   licenses +=("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
+  homepage := Some(url("https://github.com/mpollmeier/gremlin-scala")),
+  version := "3.1.1-incubating-cgnal",
+  scalaVersion := "2.10.6",
+  crossScalaVersions := Seq("2.10.6", scalaVersion.value),
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+
+  // if (scalaVersion.value.startsWith("2.10"))
+  //   deps :+ compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  // else
+  //   deps
+
+  /*publishTo := {
+    val sonatype = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at sonatype + "content/repositories/snapshots")
+    else
+      Some("releases" at sonatype + "service/local/staging/deploy/maven2")
+  },*/
   publishMavenStyle := true,
-  publishArtifact in Test := false,
-  pomIncludeRepository := { _ => false },
-  pomExtra :=
+  //publishArtifact in Test := false,
+  //pomIncludeRepository := { _ => false },
+
+  credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
+
+
+  isSnapshot := false,
+  // Select repository to publish to based on whether the current project is a
+  // SNAPSHOT or release version.
+  publishTo := {
+    val nexus = "http://repo.eligotech.com/nexus/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "content/repositories/releases")
+  }
+
+  /*pomExtra :=
     <scm>
       <url>git@github.com:mpollmeier/gremlin-scala.git</url>
       <connection>scm:git:git@github.com:mpollmeier/gremlin-scala.git</connection>
@@ -52,38 +48,20 @@ val commonSettings = Seq(
           <name>Michael Pollmeier</name>
           <url>http://www.michaelpollmeier.com</url>
         </developer>
-    </developers>, // format: on
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    releaseStepCommand("+publishSigned"),
-    setNextVersion,
-    commitNextVersion,
-    releaseStepCommand("sonatypeReleaseAll"),
-    pushChanges
-  )
+      </developers>*/
 )
 
-
-lazy val root = project.in(file("."))
-  .aggregate(`gremlin-scala`, macros)
-  .settings(
-    publishArtifact := false,
-    publishTo := {
-      Some("publishMeNot" at "https://publish/me/not")
-    }
-  )
-
-lazy val `gremlin-scala` = project.in(file("gremlin-scala"))
-  .settings(commonSettings: _*)
-  .dependsOn(macros)
-
-// macros can't be in the same compilation unit
 lazy val macros = project.in(file("macros"))
   .settings(commonSettings: _*)
+
+lazy val gremlinScala = project.in(file("gremlin-scala"))
+  .dependsOn(macros)
+  .settings(commonSettings: _*)
+
+resolvers ++= Seq(
+  Resolver.mavenLocal,
+  "Cloudera CDH" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  "Eligotech releases" at "http://repo.eligotech.com/nexus/content/repositories/releases",
+  "Eligotech snapshots" at "http://repo.eligotech.com/nexus/content/repositories/snapshots"
+)

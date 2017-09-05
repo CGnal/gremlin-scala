@@ -1,14 +1,11 @@
 package gremlin
 
-import java.util.function.{BiConsumer, BiPredicate, BiFunction, BinaryOperator, Consumer, Function ⇒ JFunction, Predicate ⇒ JPredicate, Supplier, UnaryOperator}
+import java.util.function.{Function ⇒ JFunction, Predicate ⇒ JPredicate, BiPredicate}
+
+import org.apache.tinkerpop.gremlin.structure
 import org.apache.tinkerpop.gremlin.process.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
-import org.apache.tinkerpop.gremlin.structure
 import shapeless._
-import shapeless.ops.hlist.IsHCons
-import shapeless.ops.hlist.{IsHCons, ToTraversable}
-import shapeless.ops.product.ToHList
-import shapeless.syntax.std.product.productOps
 import _root_.scala.language.implicitConversions
 
 package object scala {
@@ -18,87 +15,63 @@ package object scala {
   type Graph = structure.Graph
   type Property[A] = structure.Property[A]
   type Traverser[A] = traversal.Traverser[A]
-  type Label = String
-  type P[A] = traversal.P[A]
 
   implicit class GraphAsScala[G <: Graph](g: G) {
-    def asScala() = ScalaGraph(g)
+    def asScala = ScalaGraph(g)
   }
 
-  implicit class GraphAsJava(g: ScalaGraph) {
-    def asJava() = g.graph
+  implicit class GraphAsJava[T <: structure.Graph](g: ScalaGraph[T]) {
+    def asJava = g.graph
   }
 
   implicit class EdgeAsScala(e: Edge) {
-    def asScala() = ScalaEdge(e)
+    def asScala = ScalaEdge(e)
   }
 
   implicit class EdgeAsJava(e: ScalaEdge) {
-    def asJava() = e.edge
+    def asJava = e.edge
   }
 
   implicit class VertexAsScala(e: Vertex) {
-    def asScala() = ScalaVertex(e)
+    def asScala = ScalaVertex(e)
   }
 
   implicit class VertexAsJava(v: ScalaVertex) {
-    def asJava() = v.vertex
+    def asJava = v.vertex
   }
 
-  implicit class PropertyOps[A](property: Property[A]) {
-    def toOption: Option[A] =
-      if (property.isPresent) Some(property.value)
-      else None
-  }
+  implicit def wrap(v: Vertex) = ScalaVertex(v)
 
-  // to create a new anonymous traversal, e.g. `__.outE`
-  def __[A](): GremlinScala[A, HNil] =
-    GremlinScala[A, HNil](org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.start[A]())
+  implicit def wrap(e: Edge) = ScalaEdge(e)
 
-  def __[A](a: A): GremlinScala[A, HNil] = 
-    GremlinScala[A, HNil](org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__[A](a))
+  implicit def wrap(g: Graph) = ScalaGraph(g)
 
-  implicit def wrap(v: Vertex): ScalaVertex = ScalaVertex(v)
+  implicit def wrap[A](traversal: GraphTraversal[_, A]) = GremlinScala[A, HNil](traversal)
 
-  implicit def wrap(e: Edge): ScalaEdge = ScalaEdge(e)
+  implicit def toElementSteps[End <: Element, Labels <: HList](gremlinScala: GremlinScala[End, Labels]) =
+    new GremlinElementSteps(gremlinScala)
 
-  implicit def wrap(g: Graph): ScalaGraph = ScalaGraph(g)
+  implicit def toVertexSteps[End <: Vertex, Labels <: HList](gremlinScala: GremlinScala[End, Labels]) =
+    new GremlinVertexSteps(gremlinScala)
 
-  implicit def wrap[A](traversal: GraphTraversal[_, A]): GremlinScala[A, HNil] = GremlinScala[A, HNil](traversal)
+  implicit def toEdgeSteps[End <: Edge, Labels <: HList](gremlinScala: GremlinScala[End, Labels]) =
+    new GremlinEdgeSteps(gremlinScala)
 
-  implicit def toSupplier[A](f: () ⇒ A): Supplier[A] = new Supplier[A] {
-    override def get(): A = f()
-  }
+  //TODO make vertexSteps extend elementSteps and return VertexSteps here
+  implicit def toElementSteps(v: ScalaVertex): GremlinElementSteps[Vertex, HNil] = v.start()
 
-  implicit def toConsumer[A](f: A ⇒ Unit): Consumer[A] = new Consumer[A] {
-    override def accept(a: A): Unit = f(a)
-  }
+  implicit def toElementSteps(e: ScalaEdge): GremlinElementSteps[Edge, HNil] = e.start()
 
-  implicit def toJavaFunction[A, B](f: A ⇒ B): JFunction[A, B] = new JFunction[A, B] {
+  implicit def toJavaFunction[A, B](f: Function1[A, B]) = new JFunction[A, B] {
     override def apply(a: A): B = f(a)
   }
 
-  implicit def toJavaUnaryOperator[A](f: A ⇒ A): UnaryOperator[A] = new UnaryOperator[A] {
-    override def apply(a: A): A = f(a)
-  }
-
-  implicit def toJavaBinaryOperator[A](f: (A, A) ⇒ A): BinaryOperator[A] = new BinaryOperator[A] {
-    override def apply(a1: A, a2: A): A = f(a1, a2)
-  }
-
-  implicit def toJavaBiFunction[A, B, C](f: (A, B) ⇒ C): BiFunction[A, B, C] = new BiFunction[A, B, C] {
-    override def apply(a: A, b: B): C = f(a, b)
-  }
-
-  implicit def toJavaBiConsumer[A, B](f: (A, B) => Unit): BiConsumer[A, B] = new BiConsumer[A,B] {
-    override def accept(a: A, b: B): Unit = f(a, b)
-  }
-
-  implicit def toJavaPredicate[A](f: A ⇒ Boolean): JPredicate[A] = new JPredicate[A] {
+  implicit def toJavaPredicate[A](f: Function1[A, Boolean]) = new JPredicate[A] {
     override def test(a: A): Boolean = f(a)
   }
 
-  implicit def toJavaBiPredicate[A, B](predicate: (A, B) ⇒ Boolean): BiPredicate[A, B] =
+  //converts e.g. `(i: Int, s: String) ⇒ true` into a BiPredicate
+  implicit def toJavaBiPredicate[A, B](predicate: (A, B) ⇒ Boolean) =
     new BiPredicate[A, B] {
       def test(a: A, b: B) = predicate(a, b)
     }
@@ -109,41 +82,36 @@ package object scala {
   // Marshalling implicits
   implicit class GremlinScalaVertexFunctions(gs: GremlinScala[Vertex, _]) {
     /**
-      * Load a vertex values into a case class
-      */
-    def toCC[CC <: Product: Marshallable] = gs.map(_.toCC[CC])
+     * Load a vertex values into a case class
+     */
+    def toCC[T <: Product : Marshallable] = gs map (_.toCC[T])
   }
 
   implicit class GremlinScalaEdgeFunctions(gs: GremlinScala[Edge, _]) {
     /**
-      * Load a edge values into a case class
-      */
-    def toCC[CC <: Product: Marshallable] = gs.map(_.toCC[CC])
+     * Load a edge values into a case class
+     */
+    def toCC[T <: Product : Marshallable] = gs map (_.toCC[T])
   }
 
   // Arrow syntax implicits
-  implicit class SemiEdgeFunctions(label: Label) {
-    def ---(from: Vertex) = SemiEdge(from, label)
+  implicit class SemiEdgeFunctions(label: String) {
+    def ---(from: ScalaVertex) = SemiEdge(from, label)
 
-    def -->(right: Vertex) = SemiDoubleEdge(right, label)
+    def -->(right: ScalaVertex) = SemiDoubleEdge(right, label)
   }
 
-  implicit class SemiEdgeProductFunctions[
-    LabelAndValuesAsTuple <: Product,
-    LabelAndValues <: HList,
-    Lbl <: String,
-    KeyValues <: HList
-  ](labelAndValuesAsTuple: LabelAndValuesAsTuple)
-  (implicit toHList: ToHList.Aux[LabelAndValuesAsTuple,LabelAndValues],
-   startsWithLabel: IsHCons.Aux[LabelAndValues, Lbl, KeyValues], // first element has to be a Label
-   keyValueToList: ToTraversable.Aux[KeyValues, List, KeyValue[_]] // all other elements have to be KeyValue[_]
-  ) {
-    lazy val labelAndValues = labelAndValuesAsTuple.toHList
-    lazy val label: String = labelAndValues.head
-    lazy val keyValues: KeyValues = labelAndValues.tail
-    lazy val properties: List[KeyValue[_]] = keyValues.toList
+  // implicit class SemiEdgePropertiesFunctions(labelProperties: (String, Map[String, Any])) {
+  //   private val (label, properties) = labelProperties
 
-    def ---(from: Vertex) = SemiEdge(from, label, properties)
-    def -->(right: Vertex) = SemiDoubleEdge(right, label, properties)
+  //   def ---(from: ScalaVertex) = SemiEdge(from, label, properties)
+  // }
+
+  implicit class SemiEdgeCcFunctions[T <: Product : Marshallable](cc: T) {
+    def ---(from: ScalaVertex) = {
+      val (label, properties) = implicitly[Marshallable[T]].fromCC(cc)
+      SemiEdge(from, label, properties)
+    }
   }
+
 }
