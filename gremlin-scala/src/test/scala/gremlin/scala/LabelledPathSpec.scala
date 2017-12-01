@@ -1,7 +1,7 @@
 package gremlin.scala
 
 import org.scalatest.matchers.ShouldMatchers
-import shapeless._
+import shapelezz._
 
 class LabelledPathSpec extends TestBase {
 

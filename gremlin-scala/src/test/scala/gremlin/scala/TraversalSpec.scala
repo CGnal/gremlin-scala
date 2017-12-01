@@ -1,6 +1,6 @@
 package gremlin.scala
 
-import shapeless.test.illTyped
+import shapelezz.test.illTyped
 
 class TraversalSpec extends TestBase {
 

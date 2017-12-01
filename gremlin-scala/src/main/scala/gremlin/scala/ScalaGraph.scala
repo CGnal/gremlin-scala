@@ -1,7 +1,7 @@
 package gremlin.scala
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
-import shapeless._
+import shapelezz._
 
 case class ScalaGraph[G <: Graph](graph: G) {
 

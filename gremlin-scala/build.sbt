@@ -7,10 +7,10 @@ libraryDependencies <++= scalaVersion { scalaVersion =>
     "org.apache.tinkerpop" % "tinkergraph-gremlin" % gremlinVersion exclude("org.slf4j", "slf4j-log4j12"),
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.novocode" % "junit-interface" % "0.11" % "test->default",
-    "com.chuusai" %% "shapeless" % "2.2.5",
+    "com.cgnal" %% "shapelezz" % "2.3.2",
     "org.apache.tinkerpop" % "gremlin-test" % gremlinVersion % Test,
     "junit" % "junit" % "4.12" % Test,
-    "com.thinkaurelius.titan" % "titan-berkeleyje" % "0.9.0-M2",
+    "com.thinkaurelius.titan" % "titan-berkeleyje" % "1.1.0-hdp2.6.0",
     "org.scalatest" %% "scalatest" % "2.2.5" % Test
   )
 }

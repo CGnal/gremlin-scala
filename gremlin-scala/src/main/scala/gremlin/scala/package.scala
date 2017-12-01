@@ -5,7 +5,7 @@ import java.util.function.{Function ⇒ JFunction, Predicate ⇒ JPredicate, BiP
 import org.apache.tinkerpop.gremlin.structure
 import org.apache.tinkerpop.gremlin.process.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal
-import shapeless._
+import shapelezz._
 import _root_.scala.language.implicitConversions
 
 package object scala {

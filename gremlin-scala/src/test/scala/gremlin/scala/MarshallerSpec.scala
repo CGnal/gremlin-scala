@@ -5,7 +5,7 @@ import com.thinkaurelius.titan.example.GraphOfTheGodsFactory
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph
 import org.scalatest.FunSpec
 import org.scalatest.Matchers
-import shapeless.test.illTyped
+import shapelezz.test.illTyped
 
 case class ClassExampleWithWrongLabel(s: String,
                                       @label i: Int)
