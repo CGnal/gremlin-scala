@@ -14,8 +14,8 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.util.{BulkSet, Tree}
 import org.apache.tinkerpop.gremlin.process.traversal.util.TraversalExplanation
 import org.apache.tinkerpop.gremlin.process.traversal.{P, Path, Scope, Traversal}
 import org.apache.tinkerpop.gremlin.structure.{T, Direction}
-import shapeless.{HList, HNil, ::}
-import shapeless.ops.hlist.Prepend
+import shapelezz.{HList, HNil, ::}
+import shapelezz.ops.hlist.Prepend
 import scala.language.existentials
 // import scala.reflect.runtime.{universe => ru}
 // import StepLabel.{combineLabelWithValue, GetLabelName}

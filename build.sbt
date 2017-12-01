@@ -2,7 +2,7 @@ val commonSettings = Seq(
   organization := "com.michaelpollmeier",
   licenses +=("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   homepage := Some(url("https://github.com/mpollmeier/gremlin-scala")),
-  version := "3.1.1-incubating-cgnal",
+  version := "3.1.1-incubating-cgnal-shapelezz",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.11.11", scalaVersion.value),
   //addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -35,7 +35,7 @@ val commonSettings = Seq(
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases" at nexus + "content/repositories/releases")
-  }
+  },
 
   /*pomExtra :=
     <scm>
@@ -65,3 +65,4 @@ resolvers ++= Seq(
   "Eligotech releases" at "http://repo.eligotech.com/nexus/content/repositories/releases",
   "Eligotech snapshots" at "http://repo.eligotech.com/nexus/content/repositories/snapshots"
 )
+

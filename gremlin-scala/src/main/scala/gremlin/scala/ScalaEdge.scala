@@ -1,7 +1,7 @@
 package gremlin.scala
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__
-import shapeless._
+import shapelezz._
 
 case class ScalaEdge(edge: Edge) extends ScalaElement[Edge] {
   override def element = edge

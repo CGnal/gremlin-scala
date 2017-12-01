@@ -7,8 +7,8 @@ import org.apache.tinkerpop.gremlin.process.traversal.traverser.TraverserRequire
 import org.apache.tinkerpop.gremlin.process.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.MapStep
 import org.apache.tinkerpop.gremlin.process.traversal.step.TraversalParent
-import shapeless._
-import shapeless.ops.hlist._
+import shapelezz._
+import shapelezz.ops.hlist._
 import scala.language.postfixOps
 
 class LabelledPathStep[S, Labels <: HList](traversal: Traversal[_, _]) extends MapStep[S, Labels](traversal.asAdmin) with TraversalParent {

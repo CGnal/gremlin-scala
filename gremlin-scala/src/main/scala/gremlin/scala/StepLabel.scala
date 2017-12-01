@@ -1,7 +1,7 @@
 package gremlin.scala
 
-import shapeless._
-import shapeless.poly._
+import shapelezz._
+import shapelezz.poly._
 import java.util.UUID.randomUUID
 import java.util.{Map ⇒ JMap}
 
