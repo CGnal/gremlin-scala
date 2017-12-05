@@ -25,7 +25,6 @@ val commonSettings = Seq(
 
   credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
 
-
   isSnapshot := false,
   // Select repository to publish to based on whether the current project is a
   // SNAPSHOT or release version.
@@ -35,7 +34,7 @@ val commonSettings = Seq(
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases" at nexus + "content/repositories/releases")
-  },
+  }
 
   /*pomExtra :=
     <scm>
