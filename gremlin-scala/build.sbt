@@ -10,7 +10,7 @@ libraryDependencies <++= scalaVersion { scalaVersion =>
     "com.cgnal" %% "shapelezz" % "2.3.2",
     "org.apache.tinkerpop" % "gremlin-test" % gremlinVersion % Test,
     "junit" % "junit" % "4.12" % Test,
-    "com.thinkaurelius.titan" % "titan-berkeleyje" % "1.1.0-hdp2.6.0",
+    "com.thinkaurelius.titan" % "titan-berkeleyje" % "1.1.0-hdp2.6.2",
     "org.scalatest" %% "scalatest" % "2.2.5" % Test
   )
 }

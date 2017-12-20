@@ -2,7 +2,7 @@ val commonSettings = Seq(
   organization := "com.michaelpollmeier",
   licenses +=("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   homepage := Some(url("https://github.com/mpollmeier/gremlin-scala")),
-  version := "3.1.1-incubating-cgnal-shapelezz",
+  version := "3.1.1-incubating-hdp2.6.2-cgnal",
   scalaVersion := "2.11.11",
   crossScalaVersions := Seq("2.11.11", scalaVersion.value),
   //addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
